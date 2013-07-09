@@ -338,7 +338,43 @@ OI divides_digits (II1 b1, II1 e1, II2 b2, II2 e2, OI x) {
 template <typename II1, typename II2, typename OI>
 OI mod_digits (II1 b1, II1 e1, II2 b2, II2 e2, OI x) {
     // <your code>
-
+    int size1 = e1 - b1;
+    int size2 = e2 - b2;
+    if (size2 > size1)
+        x = divides_digits(b2, e2, b1, e1, x);
+    else {
+        int num1 = 0;
+        int num2 = 0;
+        int result = 0;
+        int size = 0;
+        int digit = 1; 
+        while (size2 != 0) {
+            --e1;
+            --e2;
+            num1 += digit * *e1;
+            num2 += digit * *e2;
+            digit *= 10;
+            --size1;
+            --size2;
+        }
+        while (size1 != 0) {
+            --e1;
+            num1 += digit * *e1;
+            digit *= 10;
+            --size1;
+        }
+        if (num1 > num2)
+            result = num1 % num2;
+        else
+            result = num2 % num1;
+        
+        while (result != 0) {
+            *x = result % 10;
+            result /= 10;
+            ++x;
+            ++size;
+        }
+    }
     return x;}
 // -------
 // Integer
@@ -392,7 +428,42 @@ class Integer {
      */
     friend bool operator < (const Integer& lhs, const Integer& rhs) {
         // <your code>
-        
+        if ((lhs.is_negative == true) && (rhs.is_negative == false))
+            return true;
+        else if ((lhs.is_negative == false) && (rhs.is_negative == true))
+            return false;
+        else if ((lhs.is_negative == false) && (rhs.is_negative == false)) {
+            if (lhs.size < rhs.size)
+                return true;
+            else if (lhs.size > rhs.size)
+                return false;
+            else {
+                for (int i = 0; i < lhs.size(); ++i) {
+                    int diff = lhs.digits[i] - rhs.digits[i];
+                    if (diff > 0)
+                        return false;
+                    if (diff < 0)
+                        return true;
+                }
+                return false;
+            }
+        }
+        else {
+            if (lhs.size > rhs.size)
+                return true;
+            else if (lhs.size < rhs.size)
+                return false;
+            else {
+                for (int i = 0; i < lhs.size(); ++i) {
+                    int diff = lhs.digits[i] - rhs.digits[i];
+                    if (diff < 0)
+                        return false;
+                    if (diff > 0)
+                        return true;
+                }
+                return false;
+            }
+        }
         return false;}
 
     // -----------
