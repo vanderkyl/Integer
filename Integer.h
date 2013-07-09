@@ -285,8 +285,61 @@ OI multiplies_digits (II1 b1, II1 e1, II2 b2, II2 e2, OI x) {
 template <typename II1, typename II2, typename OI>
 OI divides_digits (II1 b1, II1 e1, II2 b2, II2 e2, OI x) {
     // <your code>
+    int size1 = e1 - b1;
+    int size2 = e2 - b2;
+    if (size2 > size1)
+        x = divides_digits(b2, e2, b1, e1, x);
+    else {
+        int num1 = 0;
+        int num2 = 0;
+        int result = 0;
+        int size = 0;
+        int digit = 1; 
+        while (size2 != 0) {
+            --e1;
+            --e2;
+            num1 += digit * *e1;
+            num2 += digit * *e2;
+            digit *= 10;
+            --size1;
+            --size2;
+        }
+        while (size1 != 0) {
+            --e1;
+            num1 += digit * *e1;
+            digit *= 10;
+            --size1;
+        }
+        result = num1 / num2;
+        while (result != 0) {
+            *x = result % 10;
+            result /= 10;
+            ++x;
+            ++size;
+        }
+    }
     return x;}
 
+// --------------
+// mod_digits
+// --------------
+
+/**
+ * @param b an iterator to the beginning of an input sequence (inclusive)
+ * @param e an iterator to the end of an input sequence (exclusive)
+ * @param b2 an iterator to the beginning of an input sequence (inclusive)
+ * @param e2 an iterator to the end of an input sequence (exclusive)
+ * @param x an iterator to the beginning of an output sequence (inclusive)
+ * @return an iterator to the end of an output sequence (exclusive)
+ * the sequences are of decimal digits
+ * output the division of the two input sequences into the output sequence
+ * ([b1, e1) / [b2, e2)) => x
+ */
+template <typename II1, typename II2, typename OI>
+OI mod_digits (II1 b1, II1 e1, II2 b2, II2 e2, OI x) {
+    // <your code>
+
+    return x;}
 // -------
 // Integer
 // -------
@@ -488,11 +541,9 @@ class Integer {
         // data
         // ----
 
-        // <your data>
         int size;
         bool is_negative;
-
-	deque<int> digit_deque;
+        deque<int> digits;
 
     private:
         // -----
@@ -514,14 +565,12 @@ class Integer {
         Integer (int value) {
             // <your code>
             size = 1;
-            int digit;
             if (value == 0)
-                digit_deque.push_front(value);
+                digits.push_front(value);
             if (value < 0)
                 is_negative = true;
             while (value != 0) {
-	            digit = value % 10;
-                digit_deque.push_front(digit);
+                digits.push_front(value % 10);
                 value /= 10;
                 ++size;
             }
@@ -550,7 +599,11 @@ class Integer {
          */
         Integer operator - () const {
             // <your code>
-            return Integer(0);}
+            if (*this.is_negative == true)
+                *this.is_negative = false;
+            else
+                *this.is_negative = true;
+            return *this;}
 
         // -----------
         // operator ++
@@ -599,6 +652,7 @@ class Integer {
          */
         Integer& operator += (const Integer& rhs) {
             // <your code>
+
             return *this;}
 
         // -----------
@@ -610,6 +664,9 @@ class Integer {
          */
         Integer& operator -= (const Integer& rhs) {
             // <your code>
+            deque<int> temp1 = *this.digits;
+            deque<int> temp2 = rhs.digits;
+            *this.digits.begin() = minus_digits(temp1.begin(), temp1.end(), temp2.begin(), temp2.end(), *this.digit.begin());
             return *this;}
 
         // -----------
@@ -621,6 +678,9 @@ class Integer {
          */
         Integer& operator *= (const Integer& rhs) {
             // <your code>
+            deque<int> temp1 = *this.digits;
+            deque<int> temp2 = rhs.digits;
+            *this.digits.begin() = mulplies_digits(temp1.begin(), temp1.end(), temp2.begin(), temp2.end(), *this.digit.begin());
             return *this;}
 
         // -----------
@@ -633,6 +693,9 @@ class Integer {
          */
         Integer& operator /= (const Integer& rhs) {
             // <your code>
+            deque<int> temp1 = *this.digits;
+            deque<int> temp2 = rhs.digits;
+            *this.digits.begin() = divides_digits(temp1.begin(), temp1.end(), temp2.begin(), temp2.end(), *this.digit.begin());
             return *this;}
 
         // -----------
@@ -679,7 +742,7 @@ class Integer {
          */
         Integer& abs () {
             // <your code>
-            
+
             return *this;}
 
         // ---
