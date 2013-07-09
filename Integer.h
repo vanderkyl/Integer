@@ -195,8 +195,75 @@ OI multiplies_digits (II1 b1, II1 e1, II2 b2, II2 e2, OI x) {
     // <your code>
     int size1 = e1 - b1;
     int size2 = e2 - b2;
-    int product = 0;
-    while (size2 != 0)
+    if (size2 > size1)
+        x = multiplies_digits (b2, e2, b1, e1, x);
+    else {
+        int times = 0;
+        int digit = 1;
+        while (size2 != 0) {
+            --e2;
+            --size2;
+            times += digit * *e2;
+            digit *= 10;
+        }
+        if (times == 0) {
+            *x = 0;
+            return x;
+        }
+        for (int i = 0; i < size1; ++i) {
+            *(x + i) = *(b1 + i);
+        }
+        int size_x = size1;
+        cout << times << endl;
+        while (times != 1) {
+            int sum = 0;
+            int size_temp = size_x;
+            int size = size1;
+            II1 temp = e1;          
+            x = x + size_x;
+            // Tester
+            /*
+            for (int i = 0; i < size_x; ++i) {
+               cout << *(x - size_x + i); 
+            }
+            cout << endl;
+            */
+            while (size != 0) {
+                --temp;
+                --x;
+                //cout << "x = " << *x << endl;
+                //cout << "x position = " << size_temp << endl << endl;
+
+                //cout << "temp = " << *temp << endl;
+                //cout << "temp position = " << size << endl << endl;
+                sum += *temp + *x;
+                *(x + 1) = sum % 10;
+                sum /= 10;
+                --size_temp;
+                --size;
+            }
+            while (size_temp != 0) {
+                --x;
+                //cout << "x = " << *x << endl;
+                //cout << "size = " << size_temp << endl;
+                sum += *x;
+                *(x + 1) = sum % 10;
+                
+                sum /= 10;
+                --size_temp;
+            }
+            //cout << "times = " << t << endl;
+            if (sum != 0) {
+                *x = sum;
+                ++size_x;
+            }
+            else {
+                x = x + 1;
+            }
+            --times;
+        }
+        
+    }
     return x;}
 
 
@@ -612,6 +679,7 @@ class Integer {
          */
         Integer& abs () {
             // <your code>
+            
             return *this;}
 
         // ---
