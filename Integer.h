@@ -19,6 +19,7 @@
 #include <deque> // deque
 
 using namespace std;
+ 
 
 // -----------------
 // shift_left_digits
@@ -97,34 +98,50 @@ OI shift_right_digits (II b, II e, int n, OI x) {
 template <typename II1, typename II2, typename OI>
 OI plus_digits (II1 b1, II1 e1, II2 b2, II2 e2, OI x) {
     // <your code>
-    *x = 0;
     int size1 = e1 - b1;
     int size2 = e2 - b2;
-    int sum = 0;
-    if (size2 > size1) 
+    if (size2 > size1)
         x = plus_digits(b2, e2, b1, e1, x);
     else {
+        int num1 = 0;
+        int num2 = 0;
+        int result = 0;
+        int size = 0;
+        int digit = 1; 
         while (size2 != 0) {
             --e1;
             --e2;
-            sum += *e1 + *e2;
-            *(x + size1) = sum % 10;
-            sum /= 10;
+            num1 += digit * *e1;
+            num2 += digit * *e2;
+            digit *= 10;
             --size1;
             --size2;
         }
         while (size1 != 0) {
             --e1;
-            sum += *e1;
-            *(x + size1) = sum % 10;
-            sum /= 10;
+            num1 += digit * *e1;
+            digit *= 10;
             --size1;
         }
-        *(x + size1) = sum % 10;
+        result = num1 + num2;
+        while (result != 0) {
+            *x = result % 10;
+            result /= 10;
+            ++x;
+            ++size;
+        }
+        
+        int i = 1;
+        int half_size = size / 2;
+        while (half_size != 0) {
+            std::swap(*(x - size), *(x - i));
+            --half_size;
+            --size;
+            ++i;
+        }
+
+        
     }
-    // Check if largest digit addition carried over.
-    if (*x == 0) 
-        x = x + 1;
     return x;}
 
 // ------------
@@ -148,30 +165,47 @@ OI minus_digits (II1 b1, II1 e1, II2 b2, II2 e2, OI x) {
     // Assume the first number is greater than or equal to the second
     int size1 = e1 - b1;
     int size2 = e2 - b2;
-    int size = size1;
-    int diff = 0;
-    while (size2 != 0) {
-        --e1;
-        --e2;
-        --size1;
-        --size2;
-        if (*e1 < *e2) {
-            *e1 += 10;
-            *(e1 - 1) -= 1;
+    if (size2 > size1)
+        x = minus_digits(b2, e2, b1, e1, x);
+    else {
+        int num1 = 0;
+        int num2 = 0;
+        int result = 0;
+        int size = 0;
+        int digit = 1; 
+        while (size2 != 0) {
+            --e1;
+            --e2;
+            num1 += digit * *e1;
+            num2 += digit * *e2;
+            digit *= 10;
+            --size1;
+            --size2;
         }
-        diff = *e1 - *e2;
-        *(x + size1) = diff;
-    } 
-    while (size1 != 0) {
-        --e1;
-        --size1;
-        *(x + size1) = *e1;
-    }  
-    int i = 0;
-    while (i < size) {
-        if (*x == 0)
-            x = x + 1;
-        ++i;
+        while (size1 != 0) {
+            --e1;
+            num1 += digit * *e1;
+            digit *= 10;
+            --size1;
+        }
+        result = num1 - num2;
+        while (result != 0) {
+            *x = result % 10;
+            result /= 10;
+            ++x;
+            ++size;
+        }
+        
+        int i = 1;
+        int half_size = size / 2;
+        while (half_size != 0) {
+            std::swap(*(x - size), *(x - i));
+            --half_size;
+            --size;
+            ++i;
+        }
+
+        
     }
     return x;}
 
@@ -196,72 +230,45 @@ OI multiplies_digits (II1 b1, II1 e1, II2 b2, II2 e2, OI x) {
     int size1 = e1 - b1;
     int size2 = e2 - b2;
     if (size2 > size1)
-        x = multiplies_digits (b2, e2, b1, e1, x);
+        x = multiplies_digits(b2, e2, b1, e1, x);
     else {
-        int times = 0;
-        int digit = 1;
+        int num1 = 0;
+        int num2 = 0;
+        int result = 0;
+        int size = 0;
+        int digit = 1; 
         while (size2 != 0) {
+            --e1;
             --e2;
-            --size2;
-            times += digit * *e2;
+            num1 += digit * *e1;
+            num2 += digit * *e2;
             digit *= 10;
+            --size1;
+            --size2;
         }
-        if (times == 0) {
-            *x = 0;
-            return x;
+        while (size1 != 0) {
+            --e1;
+            num1 += digit * *e1;
+            digit *= 10;
+            --size1;
         }
-        for (int i = 0; i < size1; ++i) {
-            *(x + i) = *(b1 + i);
+        result = num1 * num2;
+        while (result != 0) {
+            *x = result % 10;
+            result /= 10;
+            ++x;
+            ++size;
         }
-        int size_x = size1;
-        cout << times << endl;
-        while (times != 1) {
-            int sum = 0;
-            int size_temp = size_x;
-            int size = size1;
-            II1 temp = e1;          
-            x = x + size_x;
-            // Tester
-            /*
-            for (int i = 0; i < size_x; ++i) {
-               cout << *(x - size_x + i); 
-            }
-            cout << endl;
-            */
-            while (size != 0) {
-                --temp;
-                --x;
-                //cout << "x = " << *x << endl;
-                //cout << "x position = " << size_temp << endl << endl;
+      
+        int i = 1;
+        int half_size = size / 2;
+        while (half_size != 0) {
+            std::swap(*(x - size), *(x - i));
+            --half_size;
+            --size;
+            ++i;
+        }
 
-                //cout << "temp = " << *temp << endl;
-                //cout << "temp position = " << size << endl << endl;
-                sum += *temp + *x;
-                *(x + 1) = sum % 10;
-                sum /= 10;
-                --size_temp;
-                --size;
-            }
-            while (size_temp != 0) {
-                --x;
-                //cout << "x = " << *x << endl;
-                //cout << "size = " << size_temp << endl;
-                sum += *x;
-                *(x + 1) = sum % 10;
-                
-                sum /= 10;
-                --size_temp;
-            }
-            //cout << "times = " << t << endl;
-            if (sum != 0) {
-                *x = sum;
-                ++size_x;
-            }
-            else {
-                x = x + 1;
-            }
-            --times;
-        }
         
     }
     return x;}
@@ -310,13 +317,26 @@ OI divides_digits (II1 b1, II1 e1, II2 b2, II2 e2, OI x) {
             digit *= 10;
             --size1;
         }
-        result = num1 / num2;
+        if (num1 > num2)
+            result = num1 / num2;
+        else
+            result = num2 / num1;
         while (result != 0) {
             *x = result % 10;
             result /= 10;
             ++x;
             ++size;
         }
+        
+        int i = 1;
+        int half_size = size / 2;
+        while (half_size != 0) {
+            std::swap(*(x - size), *(x - i));
+            --half_size;
+            --size;
+            ++i;
+        }
+
     }
     return x;}
 
@@ -374,6 +394,17 @@ OI mod_digits (II1 b1, II1 e1, II2 b2, II2 e2, OI x) {
             ++x;
             ++size;
         }
+        
+        int i = 1;
+        int half_size = size / 2;
+        while (half_size != 0) {
+            std::swap(*(x - size), *(x - i));
+            --half_size;
+            --size;
+            ++i;
+        }
+
+        
     }
     return x;}
 // -------
@@ -396,7 +427,7 @@ class Integer {
         // <your code>
         if (lhs.size == rhs.size && lhs.is_negative == rhs.is_negative) {
             for (int i = 0; i < lhs.size; i++) {
-                if (lhs.digit_deque[i] != rhs.digit_deque[i])
+                if (lhs.digits[i] != rhs.digits[i])
                     return false;
             }
             return true;
@@ -579,7 +610,12 @@ class Integer {
      */
     friend std::ostream& operator << (std::ostream& lhs, const Integer& rhs) {
         // <your code>
-        return lhs << "0";}
+        int size = rhs.size;
+        while (size > 0) {
+            --size;
+            lhs << rhs.digits[size];
+        }
+        return lhs;}
 
     // ---
     // abs
@@ -613,6 +649,7 @@ class Integer {
         // ----
 
         int size;
+        bool is_zero;
         bool is_negative;
         deque<int> digits;
 
@@ -636,15 +673,19 @@ class Integer {
         Integer (int value) {
             // <your code>
             size = 1;
-            if (value == 0)
+            is_zero = false;
+            is_negative = false;
+            if (value == 0) {
+                is_zero = true;
                 digits.push_front(value);
-            if (value < 0)
-                is_negative = true;
+            }
             while (value != 0) {
                 digits.push_front(value % 10);
                 value /= 10;
                 ++size;
             }
+            if (value < 0)
+                is_negative = true;
             assert(valid());}
 
         /**
@@ -670,10 +711,19 @@ class Integer {
          */
         Integer operator - () const {
             // <your code>
-            if (*this.is_negative == true)
-                *this.is_negative = false;
+            int size = size;
+            int num = 0;
+            int digit = 1;
+            while (size != 0) {
+                --size;
+                num += digits[size] * digit;
+                digit *= 10;
+            }
+            
+            if (is_negative == true)
+                return Integer(num);
             else
-                *this.is_negative = true;
+                return Integer(-num);
             return *this;}
 
         // -----------
@@ -723,7 +773,9 @@ class Integer {
          */
         Integer& operator += (const Integer& rhs) {
             // <your code>
-
+            deque<int> temp1 = this->digits;
+            deque<int> temp2 = rhs.digits;
+            this->digits.begin() = plus_digits(temp1.begin(), temp1.end(), temp2.begin(), temp2.end(), this->digits.begin());
             return *this;}
 
         // -----------
@@ -735,9 +787,9 @@ class Integer {
          */
         Integer& operator -= (const Integer& rhs) {
             // <your code>
-            deque<int> temp1 = *this.digits;
+            deque<int> temp1 = this->digits;
             deque<int> temp2 = rhs.digits;
-            *this.digits.begin() = minus_digits(temp1.begin(), temp1.end(), temp2.begin(), temp2.end(), *this.digit.begin());
+            this->digits.begin() = minus_digits(temp1.begin(), temp1.end(), temp2.begin(), temp2.end(), this->digits.begin());
             return *this;}
 
         // -----------
@@ -749,9 +801,9 @@ class Integer {
          */
         Integer& operator *= (const Integer& rhs) {
             // <your code>
-            deque<int> temp1 = *this.digits;
+            deque<int> temp1 = this->digits;
             deque<int> temp2 = rhs.digits;
-            *this.digits.begin() = mulplies_digits(temp1.begin(), temp1.end(), temp2.begin(), temp2.end(), *this.digit.begin());
+            this->digits.begin() = mulplies_digits(temp1.begin(), temp1.end(), temp2.begin(), temp2.end(), this->digit.begin());
             return *this;}
 
         // -----------
@@ -764,9 +816,9 @@ class Integer {
          */
         Integer& operator /= (const Integer& rhs) {
             // <your code>
-            deque<int> temp1 = *this.digits;
+            deque<int> temp1 = this->digits;
             deque<int> temp2 = rhs.digits;
-            *this.digits.begin() = divides_digits(temp1.begin(), temp1.end(), temp2.begin(), temp2.end(), *this.digit.begin());
+            this->digits.begin() = divides_digits(temp1.begin(), temp1.end(), temp2.begin(), temp2.end(), this->digits.begin());
             return *this;}
 
         // -----------
@@ -779,6 +831,9 @@ class Integer {
          */
         Integer& operator %= (const Integer& rhs) {
             // <your code>
+            deque<int> temp1 = this->digits;
+            deque<int> temp2 = rhs.digits;
+            this->digits.begin() = mod_digits(temp1.begin(), temp1.end(), temp2.begin(), temp2.end(), this->digits.begin());
             return *this;}
 
         // ------------
@@ -790,6 +845,8 @@ class Integer {
          */
         Integer& operator <<= (int n) {
             // <your code>
+            deque<int> temp1 = this->digits;
+            this->digits.begin() = shift_left_digits(temp1.begin(), temp1.end(), n, this->digits.begin());
             return *this;}
 
         // ------------
@@ -801,6 +858,8 @@ class Integer {
          */
         Integer& operator >>= (int n) {
             // <your code>
+            deque<int> temp1 = this->digits;
+            this->digits.begin() = shift_right_digits(temp1.begin(), temp1.end(), n, this->digits.begin());
             return *this;}
 
         // ---
@@ -813,7 +872,8 @@ class Integer {
          */
         Integer& abs () {
             // <your code>
-
+            if (this->is_negative)
+                this->is_negative = false;
             return *this;}
 
         // ---
@@ -828,6 +888,22 @@ class Integer {
          */
         Integer& pow (int e) {
             // <your code>
+            /*
+            if (this->is_zero && (e == 0))
+                throw std::invalid_argument("Invalid computation");
+            if (e < 0)
+                throw std::invalid_argument("Invalid power");
+            if (e == 0) {
+                this->digits[0] = 0;
+                this->size = 1;
+            }
+            while (e != 0) {
+                int size = this->size;
+                while (size > 0) {
+                    --size;
+                }
+            }
+            */
             return *this;}};
 
 #endif // Integer_h
