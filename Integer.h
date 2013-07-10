@@ -672,20 +672,24 @@ class Integer {
          */
         Integer (int value) {
             // <your code>
-            size = 1;
+            size = 0;
             is_zero = false;
             is_negative = false;
             if (value == 0) {
                 is_zero = true;
                 digits.push_front(value);
+                ++size;
+            }
+            else if (value < 0) {
+                is_negative = true;
+                value = -value;
             }
             while (value != 0) {
                 digits.push_front(value % 10);
                 value /= 10;
                 ++size;
             }
-            if (value < 0)
-                is_negative = true;
+            
             assert(valid());}
 
         /**
@@ -711,7 +715,7 @@ class Integer {
          */
         Integer operator - () const {
             // <your code>
-            int size = size;
+            int size = this->size;
             int num = 0;
             int digit = 1;
             while (size != 0) {
@@ -719,12 +723,10 @@ class Integer {
                 num += digits[size] * digit;
                 digit *= 10;
             }
-            
             if (is_negative == true)
                 return Integer(num);
             else
-                return Integer(-num);
-            return *this;}
+                return Integer(-num);}
 
         // -----------
         // operator ++
