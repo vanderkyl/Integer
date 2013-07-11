@@ -611,9 +611,10 @@ class Integer {
     friend std::ostream& operator << (std::ostream& lhs, const Integer& rhs) {
         // <your code>
         int size = rhs.size;
-        while (size > 0) {
-            --size;
-            lhs << rhs.digits[size];
+        int i = 0;
+        while (i < size) {
+            lhs << rhs.digits[i];
+            ++i;
         }
         return lhs;}
 
@@ -727,6 +728,7 @@ class Integer {
                 return Integer(num);
             else
                 return Integer(-num);}
+            
 
         // -----------
         // operator ++
@@ -890,22 +892,35 @@ class Integer {
          */
         Integer& pow (int e) {
             // <your code>
-            /*
             if (this->is_zero && (e == 0))
                 throw std::invalid_argument("Invalid computation");
             if (e < 0)
                 throw std::invalid_argument("Invalid power");
-            if (e == 0) {
-                this->digits[0] = 0;
+            else if (e == 0) {
+                this->digits[0] = 1;
                 this->size = 1;
             }
-            while (e != 0) {
+            else {
                 int size = this->size;
-                while (size > 0) {
+                int num = 0;
+                int digit = 1;
+                while (size != 0) {
                     --size;
+                    num += digit * this->digits[size];
+                    digit *= 10;
                 }
+                cout << num << endl;
+                cout << e << endl;
+                int num_temp = num;
+                while (e != 1) {
+                    num *= num_temp;
+                    --e;
+                }
+                cout << num << endl;
+                *this = Integer(num);
+                cout << "size = " << this->size << endl;
+                cout << this->digits[0] << this->digits[1] << endl;
             }
-            */
             return *this;}};
 
 #endif // Integer_h
