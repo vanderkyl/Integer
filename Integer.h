@@ -21,6 +21,7 @@
 using namespace std;
  
 
+
 // -----------------
 // shift_left_digits
 // ----------------- 
@@ -103,44 +104,33 @@ OI plus_digits (II1 b1, II1 e1, II2 b2, II2 e2, OI x) {
     if (size2 > size1)
         x = plus_digits(b2, e2, b1, e1, x);
     else {
-        int num1 = 0;
-        int num2 = 0;
-        int result = 0;
+        int sum = 0; 
         int size = 0;
-        int digit = 1; 
         while (size2 != 0) {
-            --e1;
-            --e2;
-            num1 += digit * *e1;
-            num2 += digit * *e2;
-            digit *= 10;
             --size1;
             --size2;
+            sum += *(b1 + size1) + *(b2 + size2);
+            *x = sum % 10;
+            sum /= 10;
+            ++x;
+            ++size;
+            
         }
         while (size1 != 0) {
-            --e1;
-            num1 += digit * *e1;
-            digit *= 10;
             --size1;
-        }
-        result = num1 + num2;
-        while (result != 0) {
-            *x = result % 10;
-            result /= 10;
+            sum += *(b1 + size1);
+            *x = sum % 10;
+            sum /= 10;
             ++x;
             ++size;
         }
         
-        int i = 1;
-        int half_size = size / 2;
-        while (half_size != 0) {
-            std::swap(*(x - size), *(x - i));
-            --half_size;
-            --size;
-            ++i;
+        if (sum != 0) {
+            *x = sum;
+            ++x;
+            ++size;
         }
-
-        
+        reverse(x - size, x);
     }
     return x;}
 
@@ -161,51 +151,52 @@ OI plus_digits (II1 b1, II1 e1, II2 b2, II2 e2, OI x) {
  */
 template <typename II1, typename II2, typename OI>
 OI minus_digits (II1 b1, II1 e1, II2 b2, II2 e2, OI x) {
-    // <your code>
     // Assume the first number is greater than or equal to the second
     int size1 = e1 - b1;
     int size2 = e2 - b2;
     if (size2 > size1)
         x = minus_digits(b2, e2, b1, e1, x);
     else {
+        int diff = 0; 
+        int size = 0;
         int num1 = 0;
         int num2 = 0;
-        int result = 0;
-        int size = 0;
-        int digit = 1; 
+        bool zero_remainder = false;
         while (size2 != 0) {
-            --e1;
-            --e2;
-            num1 += digit * *e1;
-            num2 += digit * *e2;
-            digit *= 10;
             --size1;
             --size2;
-        }
-        while (size1 != 0) {
-            --e1;
-            num1 += digit * *e1;
-            digit *= 10;
-            --size1;
-        }
-        result = num1 - num2;
-        while (result != 0) {
-            *x = result % 10;
-            result /= 10;
+            num1 += *(b1 + size1);
+            num2 = *(b2 + size2);
+            if (num1 == -1) {
+                num1 = 9;
+                zero_remainder = true;
+            }
+            if (num1 < num2)
+                num1 += 10;
+            diff = num1 - num2;
+            *x = diff % 10;
+            if (num1 >= 10 || zero_remainder) {
+                num1 = -1;
+                zero_remainder = false;
+            }
+            else 
+                num1 = 0;
             ++x;
             ++size;
+            
         }
-        
-        int i = 1;
-        int half_size = size / 2;
-        while (half_size != 0) {
-            std::swap(*(x - size), *(x - i));
-            --half_size;
-            --size;
-            ++i;
+        while (size1 != 0) {
+            --size1;
+            num1 += *(b1 + size1);
+            if (num1 == 0 && size1 == 0) {
+            }
+            else {
+                *x = num1;
+                ++size;
+                ++x;
+            } 
         }
-
-        
+        reverse(x - size, x);
     }
     return x;}
 
@@ -226,52 +217,74 @@ OI minus_digits (II1 b1, II1 e1, II2 b2, II2 e2, OI x) {
  */
 template <typename II1, typename II2, typename OI>
 OI multiplies_digits (II1 b1, II1 e1, II2 b2, II2 e2, OI x) {
-    // <your code>
     int size1 = e1 - b1;
     int size2 = e2 - b2;
-    if (size2 > size1)
+    int size_x = 0;
+    if ((*b1 == 0 && size1 == 0) || (*b2 == 0 && size2 == 1))
+        *x = 0;
+    else if (size2 > size1)
         x = multiplies_digits(b2, e2, b1, e1, x);
     else {
-        int num1 = 0;
-        int num2 = 0;
-        int result = 0;
-        int size = 0;
-        int digit = 1; 
-        while (size2 != 0) {
-            --e1;
-            --e2;
-            num1 += digit * *e1;
-            num2 += digit * *e2;
-            digit *= 10;
-            --size1;
+        OI temp_x;
+        int size;
+        int pos;
+        int sum = 0;
+        int product;
+        int start = 0;
+        while (size2 != 0){
+            product = 0;
             --size2;
+            temp_x = x + start;
+            size = size1;
+            pos = start;
+            while (size != 0){
+                --size;
+                product += *(b1 + size) * *(b2 + size2);
+                if (pos >= size_x){
+                    *temp_x = product % 10;
+                    ++size_x;
+                } 
+                else {
+                    sum += *temp_x + (product % 10);
+                    if (sum > 9) {
+                        *temp_x = sum % 10;
+                        product = sum; 
+                        sum /= 10;
+                    }
+                    else { 
+                        *temp_x = sum;
+                        sum = 0;
+                    }
+                }
+                product /= 10;
+                ++temp_x;
+                ++pos;
+                
+            }
+            if (product != 0) {
+                if (pos >= size_x){
+                    *temp_x = product;
+                    ++size_x;
+                } 
+                else {
+                    sum = *temp_x + product;
+                    if (sum > 9) {
+                        *temp_x = sum % 10;
+                        product = sum;  
+                    }
+                    else
+                        *temp_x = sum;
+                }
+                ++temp_x;
+                ++pos;
+            }
+            ++start;
         }
-        while (size1 != 0) {
-            --e1;
-            num1 += digit * *e1;
-            digit *= 10;
-            --size1;
-        }
-        result = num1 * num2;
-        while (result != 0) {
-            *x = result % 10;
-            result /= 10;
-            ++x;
-            ++size;
-        }
-      
-        int i = 1;
-        int half_size = size / 2;
-        while (half_size != 0) {
-            std::swap(*(x - size), *(x - i));
-            --half_size;
-            --size;
-            ++i;
-        }
-
-        
+        reverse(x, x + size_x);
+        x = x + size_x;
     }
     return x;}
+
 
 
 // --------------
@@ -610,9 +623,8 @@ class Integer {
      */
     friend std::ostream& operator << (std::ostream& lhs, const Integer& rhs) {
         // <your code>
-        int size = rhs.size;
         int i = 0;
-        while (i < size) {
+        while (i < rhs.size) {
             lhs << rhs.digits[i];
             ++i;
         }
@@ -661,6 +673,7 @@ class Integer {
 
         bool valid () const {
             // <your code>
+
             return true;}
 
     public:
@@ -780,6 +793,7 @@ class Integer {
             deque<int> temp1 = this->digits;
             deque<int> temp2 = rhs.digits;
             this->digits.begin() = plus_digits(temp1.begin(), temp1.end(), temp2.begin(), temp2.end(), this->digits.begin());
+        
             return *this;}
 
         // -----------
