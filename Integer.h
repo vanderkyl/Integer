@@ -675,6 +675,7 @@ class Integer {
         // ----
 
         int size;
+        bool is_valid;
         bool is_zero;
         bool is_negative;
         deque<int> digits;
@@ -685,9 +686,7 @@ class Integer {
         // -----
 
         bool valid () const {
-            // <your code>
-
-            return true;}
+            return is_valid;}
 
     public:
         // ------------
@@ -701,6 +700,7 @@ class Integer {
             // <your code>
             size = 0;
             is_zero = false;
+            is_valid = true;
             is_negative = false;
             if (value == 0) {
                 is_zero = true;
@@ -716,26 +716,7 @@ class Integer {
                 value /= 10;
                 ++size;
             }
-            digits[size] = 10;
             assert(valid());}
-
-
-        public:
-            // ----
-            // size
-            // ----
-            /**
-             *
-             */
-            int size_of () {
-                int i = 0;
-                int count = 0;
-                while (digits[i] != 10){
-                    ++count;
-                    ++i;
-                }  
-                return count; 
-            } 
 
 
         /**
@@ -743,7 +724,16 @@ class Integer {
          * @throws invalid_argument if value is not a valid representation of an Integer
          */
         explicit Integer (const std::string& value) {
-            // <your code>
+            std::string temp = value;
+            is_valid = true;
+            for (char& c : temp) {
+                int ascii = (int) c;
+                if (ascii < 48 || ascii > 57) {
+                    is_valid = false;
+                    break;
+                }
+
+            }
             if (!valid())
                 throw std::invalid_argument("Integer::Integer()");}
 
@@ -760,8 +750,6 @@ class Integer {
          * <your documentation>
          */
         Integer operator - () const {
-            // <your code>
-
             int size = this->size;
             int num = 0;
             int digit = 1;
@@ -785,7 +773,6 @@ class Integer {
          */
         Integer& operator ++ () {
             *this += 1;
-            this->size = size_of();
             return *this;}
 
         /**
@@ -794,7 +781,6 @@ class Integer {
         Integer operator ++ (int) {
             Integer x = *this;
             ++(*this);
-            this->size = size_of();
             return x;}
 
         // -----------
@@ -806,7 +792,6 @@ class Integer {
          */
         Integer& operator -- () {
             *this -= 1;
-            this->size = size_of();
             return *this;}
 
         /**
@@ -815,7 +800,6 @@ class Integer {
         Integer operator -- (int) {
             Integer x = *this;
             --(*this);
-            this->size = size_of();
             return x;}
 
         // -----------
@@ -891,7 +875,7 @@ class Integer {
          */
         Integer& operator /= (const Integer& rhs) {
             int size = this->digits.size();
-            int result[10];
+            int result[40000];
             int* end = divides_digits(this->digits.begin(), this->digits.end(), rhs.digits.begin(), rhs.digits.end(), result);
             int result_size = end - result;
             for (int i = 0; i < result_size; ++i) {
@@ -955,7 +939,7 @@ class Integer {
          */
         Integer& operator >>= (int n) {
             int size = this->digits.size();
-            int result[size - n + 1];
+            int result[40000];
             int* end = shift_right_digits(this->digits.begin(), this->digits.end(), n, result);
             int result_size = end - result;
             for (int i = 0; i < result_size; ++i) {
@@ -973,7 +957,6 @@ class Integer {
          * <your documentation>
          */
         Integer& abs () {
-            // <your code>
             if (this->is_negative)
                 this->is_negative = false;
             return *this;}
