@@ -20,7 +20,13 @@
 
 using namespace std;
  
-
+template <typename II>
+void reverse_num (II b, II e) {
+    while ((b != e) && (b != --e)) {
+        std::swap(*b, *e);
+        ++b;
+    }
+}
 
 // -----------------
 // shift_left_digits
@@ -37,7 +43,6 @@ using namespace std;
  */
 template <typename II, typename OI>
 OI shift_left_digits (II b, II e, int n, OI x) {
-    // <your code>
     while (b != e) {
         *x = *b;
         ++b;
@@ -48,6 +53,7 @@ OI shift_left_digits (II b, II e, int n, OI x) {
         ++x;
         --n;
     }
+    *x = 10;
     return x;}
 
 // ------------------
@@ -67,18 +73,20 @@ template <typename II, typename OI>
 OI shift_right_digits (II b, II e, int n, OI x) {
     // <your code>
     int size = e - b;
-    n = size - n;
-    if (n > 0) {
-        while (n != 0) {
+    int num = size - n;
+    if (num > 0) {
+        while (num != 0) {
             *x = *b;
             ++b;
             ++x;
-            --n;
+            --num;
         }
     }
-    else
-        *x = 0; 
-
+    else {
+        *x = 0;
+        ++x;
+    } 
+    *x = 10;
     return x;}
 
 // -----------
@@ -130,7 +138,8 @@ OI plus_digits (II1 b1, II1 e1, II2 b2, II2 e2, OI x) {
             ++x;
             ++size;
         }
-        reverse(x - size, x);
+        reverse_num(x - size, x);
+        *x = 10;
     }
     return x;}
 
@@ -196,7 +205,8 @@ OI minus_digits (II1 b1, II1 e1, II2 b2, II2 e2, OI x) {
                 ++x;
             } 
         }
-        reverse(x - size, x);
+        reverse_num(x - size, x);
+        *x = 10;
     }
     return x;}
 
@@ -280,8 +290,9 @@ OI multiplies_digits (II1 b1, II1 e1, II2 b2, II2 e2, OI x) {
             }
             ++start;
         }
-        reverse(x, x + size_x);
+        reverse_num(x, x + size_x);
         x = x + size_x;
+        *x = 10;
     }
     return x;}
 
@@ -349,7 +360,7 @@ OI divides_digits (II1 b1, II1 e1, II2 b2, II2 e2, OI x) {
             --size;
             ++i;
         }
-
+        *x = 10;
     }
     return x;}
 
@@ -417,7 +428,7 @@ OI mod_digits (II1 b1, II1 e1, II2 b2, II2 e2, OI x) {
             ++i;
         }
 
-        
+        *x = 10;
     }
     return x;}
 // -------
@@ -624,6 +635,8 @@ class Integer {
     friend std::ostream& operator << (std::ostream& lhs, const Integer& rhs) {
         // <your code>
         int i = 0;
+        if (rhs.is_negative)
+            lhs << "-";
         while (i < rhs.size) {
             lhs << rhs.digits[i];
             ++i;
@@ -703,8 +716,27 @@ class Integer {
                 value /= 10;
                 ++size;
             }
-            
+            digits[size] = 10;
             assert(valid());}
+
+
+        public:
+            // ----
+            // size
+            // ----
+            /**
+             *
+             */
+            int size_of () {
+                int i = 0;
+                int count = 0;
+                while (digits[i] != 10){
+                    ++count;
+                    ++i;
+                }  
+                return count; 
+            } 
+
 
         /**
          * <your documentation>
@@ -729,6 +761,7 @@ class Integer {
          */
         Integer operator - () const {
             // <your code>
+
             int size = this->size;
             int num = 0;
             int digit = 1;
@@ -752,6 +785,7 @@ class Integer {
          */
         Integer& operator ++ () {
             *this += 1;
+            this->size = size_of();
             return *this;}
 
         /**
@@ -760,6 +794,7 @@ class Integer {
         Integer operator ++ (int) {
             Integer x = *this;
             ++(*this);
+            this->size = size_of();
             return x;}
 
         // -----------
@@ -771,6 +806,7 @@ class Integer {
          */
         Integer& operator -- () {
             *this -= 1;
+            this->size = size_of();
             return *this;}
 
         /**
@@ -779,6 +815,7 @@ class Integer {
         Integer operator -- (int) {
             Integer x = *this;
             --(*this);
+            this->size = size_of();
             return x;}
 
         // -----------
@@ -789,11 +826,17 @@ class Integer {
          * <your documentation>
          */
         Integer& operator += (const Integer& rhs) {
-            // <your code>
-            deque<int> temp1 = this->digits;
-            deque<int> temp2 = rhs.digits;
-            this->digits.begin() = plus_digits(temp1.begin(), temp1.end(), temp2.begin(), temp2.end(), this->digits.begin());
-        
+            int size = this->digits.size();
+            int result[40000];
+            int* end = multiplies_digits(this->digits.begin(), this->digits.end(), rhs.digits.begin(), rhs.digits.end(), result);
+            int result_size = end - result;
+            for (int i = 0; i < result_size; ++i) {
+                if (i < size)
+                    this->digits[i] = result[i];
+                else
+                    this->digits.push_back(result[i]);
+            }    
+            this->size = result_size;
             return *this;}
 
         // -----------
@@ -804,10 +847,17 @@ class Integer {
          * <your documentation>
          */
         Integer& operator -= (const Integer& rhs) {
-            // <your code>
-            deque<int> temp1 = this->digits;
-            deque<int> temp2 = rhs.digits;
-            this->digits.begin() = minus_digits(temp1.begin(), temp1.end(), temp2.begin(), temp2.end(), this->digits.begin());
+            int size = this->digits.size();
+            int result[40000];
+            int* end = multiplies_digits(this->digits.begin(), this->digits.end(), rhs.digits.begin(), rhs.digits.end(), result);
+            int result_size = end - result;
+            for (int i = 0; i < result_size; ++i) {
+                if (i < size)
+                    this->digits[i] = result[i];
+                else
+                    this->digits.push_back(result[i]);
+            }    
+            this->size = result_size;
             return *this;}
 
         // -----------
@@ -818,10 +868,17 @@ class Integer {
          * <your documentation>
          */
         Integer& operator *= (const Integer& rhs) {
-            // <your code>
-            deque<int> temp1 = this->digits;
-            deque<int> temp2 = rhs.digits;
-            this->digits.begin() = mulplies_digits(temp1.begin(), temp1.end(), temp2.begin(), temp2.end(), this->digit.begin());
+            const int size = this->size;
+            int result[40000];
+            int* end = multiplies_digits(this->digits.begin(), this->digits.end(), rhs.digits.begin(), rhs.digits.end(), result);
+            int result_size = end - result;
+            for (int i = 0; i < result_size; ++i) {
+                if (i < size)
+                    this->digits[i] = result[i];
+                else
+                    this->digits.push_back(result[i]);
+            }    
+            this->size = result_size;
             return *this;}
 
         // -----------
@@ -833,10 +890,17 @@ class Integer {
          * @throws invalid_argument if (rhs == 0)
          */
         Integer& operator /= (const Integer& rhs) {
-            // <your code>
-            deque<int> temp1 = this->digits;
-            deque<int> temp2 = rhs.digits;
-            this->digits.begin() = divides_digits(temp1.begin(), temp1.end(), temp2.begin(), temp2.end(), this->digits.begin());
+            int size = this->digits.size();
+            int result[10];
+            int* end = divides_digits(this->digits.begin(), this->digits.end(), rhs.digits.begin(), rhs.digits.end(), result);
+            int result_size = end - result;
+            for (int i = 0; i < result_size; ++i) {
+                if (i < size)
+                    this->digits[i] = result[i];
+                else
+                    this->digits.push_back(result[i]);
+            }    
+            this->size = result_size;
             return *this;}
 
         // -----------
@@ -848,10 +912,17 @@ class Integer {
          * @throws invalid_argument if (rhs <= 0)
          */
         Integer& operator %= (const Integer& rhs) {
-            // <your code>
-            deque<int> temp1 = this->digits;
-            deque<int> temp2 = rhs.digits;
-            this->digits.begin() = mod_digits(temp1.begin(), temp1.end(), temp2.begin(), temp2.end(), this->digits.begin());
+            int size = this->digits.size();
+            int result[40000];
+            int* end = mod_digits(this->digits.begin(), this->digits.end(), rhs.digits.begin(), rhs.digits.end(), result);
+            int result_size = end - result;
+            for (int i = 0; i < result_size; ++i) {
+                if (i < size)
+                    this->digits[i] = result[i];
+                else
+                    this->digits.push_back(result[i]);
+            }    
+            this->size = result_size;
             return *this;}
 
         // ------------
@@ -862,9 +933,17 @@ class Integer {
          * <your documentation>
          */
         Integer& operator <<= (int n) {
-            // <your code>
-            deque<int> temp1 = this->digits;
-            this->digits.begin() = shift_left_digits(temp1.begin(), temp1.end(), n, this->digits.begin());
+            int size = this->digits.size();
+            int result[40000];
+            int* end = shift_left_digits(this->digits.begin(), this->digits.end(), n, result);
+            int result_size = end - result;
+            for (int i = 0; i < result_size; ++i) {
+                if (i < size)
+                    this->digits[i] = result[i];
+                else
+                    this->digits.push_back(result[i]);
+            }    
+            this->size = result_size;
             return *this;}
 
         // ------------
@@ -875,9 +954,14 @@ class Integer {
          * <your documentation>
          */
         Integer& operator >>= (int n) {
-            // <your code>
-            deque<int> temp1 = this->digits;
-            this->digits.begin() = shift_right_digits(temp1.begin(), temp1.end(), n, this->digits.begin());
+            int size = this->digits.size();
+            int result[size - n + 1];
+            int* end = shift_right_digits(this->digits.begin(), this->digits.end(), n, result);
+            int result_size = end - result;
+            for (int i = 0; i < result_size; ++i) {
+                this->digits[i] = result[i];
+            }    
+            this->size = result_size;
             return *this;}
 
         // ---
@@ -905,7 +989,6 @@ class Integer {
          * @throws invalid_argument if (e < 0)
          */
         Integer& pow (int e) {
-            // <your code>
             if (this->is_zero && (e == 0))
                 throw std::invalid_argument("Invalid computation");
             if (e < 0)
@@ -915,26 +998,12 @@ class Integer {
                 this->size = 1;
             }
             else {
-                int size = this->size;
-                int num = 0;
-                int digit = 1;
-                while (size != 0) {
-                    --size;
-                    num += digit * this->digits[size];
-                    digit *= 10;
-                }
-                cout << num << endl;
-                cout << e << endl;
-                int num_temp = num;
+                Integer x = *this;
                 while (e != 1) {
-                    num *= num_temp;
+                    *this *= x;
                     --e;
                 }
-                cout << num << endl;
-                *this = Integer(num);
-                cout << "size = " << this->size << endl;
-                cout << this->digits[0] << this->digits[1] << endl;
-            }
+            }   
             return *this;}};
 
 #endif // Integer_h
