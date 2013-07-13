@@ -37,9 +37,16 @@ void reverse_num (II b, II e) {
     }
 }
 
+/**
+ * @param b an iterator to the beginning of an input sequence (inclusive)
+ * @param e an iterator to the end of an input sequence (exclusive)
+ * @return x an output iterator
+ * copy and reverse a sequence of decimal digits
+ */
 template <typename II, typename OI>
 OI copy_reverse (II b, II e, OI x) {
     int size = e - b;
+    assert(size >= 0);
     while (b != e) {
         --size;
         *(x + size) = *b;
@@ -48,36 +55,7 @@ OI copy_reverse (II b, II e, OI x) {
     return x;
 }
 
-template <typename II, typename OI>
-OI copy_num (II b, II e, OI x) {
-    while (b != e) {
-        *x = *b;
-        ++b;
-        ++x;
-    }
-    return x;
-}
 
-template <typename II1, typename II2>
-bool less_than_or_equal (II1 b1, II1 e1, II2 b2, II2 e2) {
-    int size1 = e1 - b1;
-    int size2 = e2 - b2;
-    if (size1 < size2) 
-        return true;
-    else if (size1 > size2)
-        return false;
-    else {
-        int diff = 0;
-        while (b1 != e1) {
-            diff = *b1 - *b2;
-            if (diff > 0)
-                return false;
-            ++b1;
-            ++b2;
-        } 
-    } 
-    return true;
-}
 // -----------------
 // shift_left_digits
 // ----------------- 
@@ -481,9 +459,10 @@ OI divides_digits (II1 b1, II1 e1, II2 b2, II2 e2, OI x) {
  */
 template <typename II1, typename II2, typename OI>
 OI mod_digits (II1 b1, II1 e1, II2 b2, II2 e2, OI x) {
-    // <your code>
     int size1 = e1 - b1;
     int size2 = e2 - b2;
+    assert(size1 > 0);
+    assert(size2 > 0);
     int num1 = 0;
     int num2 = 0;
     int result = 0;
