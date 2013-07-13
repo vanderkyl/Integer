@@ -37,6 +37,47 @@ void reverse_num (II b, II e) {
     }
 }
 
+template <typename II, typename OI>
+OI copy_reverse (II b, II e, OI x) {
+    int size = e - b;
+    while (b != e) {
+        --size;
+        *(x + size) = *b;
+        ++b;
+    }
+    return x;
+}
+
+template <typename II, typename OI>
+OI copy_num (II b, II e, OI x) {
+    while (b != e) {
+        *x = *b;
+        ++b;
+        ++x;
+    }
+    return x;
+}
+
+template <typename II1, typename II2>
+bool less_than_or_equal (II1 b1, II1 e1, II2 b2, II2 e2) {
+    int size1 = e1 - b1;
+    int size2 = e2 - b2;
+    if (size1 < size2) 
+        return true;
+    else if (size1 > size2)
+        return false;
+    else {
+        int diff = 0;
+        while (b1 != e1) {
+            diff = *b1 - *b2;
+            if (diff > 0)
+                return false;
+            ++b1;
+            ++b2;
+        } 
+    } 
+    return true;
+}
 // -----------------
 // shift_left_digits
 // ----------------- 
@@ -183,47 +224,71 @@ OI minus_digits (II1 b1, II1 e1, II2 b2, II2 e2, OI x) {
     int size2 = e2 - b2;
     assert(size1 > 0);
     assert(size2 > 0);
-    if (size2 > size1)
+    if (*b2 == 0 && size2 == 1) {
+        while (b1 != e1) {
+            *x = *b1;
+            ++x;
+            ++b1;
+        }
+    }
+    else if (size2 > size1)
         x = minus_digits(b2, e2, b1, e1, x);
     else {
+        int temp1[20000];
+        int temp2[20000];
+        copy_reverse(b1, e1, temp1);
+        copy_reverse(b2, e2, temp2);
+        int i1 = 0;
+        int i2 = 0;
         int diff = 0; 
         int size = 0;
         int num1 = 0;
         int num2 = 0;
         bool zero_remainder = false;
-        while (size2 != 0) {
-            --size1;
-            --size2;
-            num1 += *(b1 + size1);
-            num2 = *(b2 + size2);
+
+        while (i2 < size2) {
+            num1 += temp1[i1];
+            num2 = temp2[i2];
+            // If the sum of num1 is negative, roll over to 9
             if (num1 == -1) {
                 num1 = 9;
                 zero_remainder = true;
             }
+            // If num1 is less than num2 add 10 to num1
             if (num1 < num2)
                 num1 += 10;
             diff = num1 - num2;
-            *x = diff % 10;
+            // If the last number diff is 0 don't copy it to x
+            if (diff == 0 && i1 == (size1 - 1)) 
+                --size;
+            else {
+                *x = diff % 10;
+                ++x;
+            }
+            // Account for negative diff
             if (num1 >= 10 || zero_remainder) {
                 num1 = -1;
                 zero_remainder = false;
             }
             else 
-                num1 = 0;
-            ++x;
+                num1 = 0; 
+            ++i1;
+            ++i2;
             ++size;
-            
         }
-        while (size1 != 0) {
-            --size1;
-            num1 += *(b1 + size1);
-            if (num1 == 0 && size1 == 0) {
+        // Minus extra digits from the first number
+        while (i1 < size1) {
+            num1 += temp1[i1];
+            // If the last number diff is 0 don't copy it to x.
+            if (num1 == 0 && i1 == (size1 - 1)) {
             }
             else {
                 *x = num1;
                 ++size;
                 ++x;
             } 
+            num1 = 0;
+            ++i1;
         }
         // The digits are placed into x backwards; reverse list.
         reverse_num(x - size, x);
@@ -253,28 +318,33 @@ OI multiplies_digits (II1 b1, II1 e1, II2 b2, II2 e2, OI x) {
     assert(size2 > 0);
     int size_x = 0;
     // If either number is 0 the result is 0;
-    if ((*b1 == 0 && size1 == 0) || (*b2 == 0 && size2 == 1))
+    if ((*b2 == 0 && size2 == 1)) {
         *x = 0;
+        ++x;
+    }
     else if (size2 > size1)
         x = multiplies_digits(b2, e2, b1, e1, x);
     else {
+        int temp1[20000];
+        int temp2[20000];
+        copy_reverse(b1, e1, temp1);
+        copy_reverse(b2, e2, temp2);
         OI temp_x;
-        int size;      // Temp holder of first number's size.
         int pos;       // Position that is being added on the output list.
         int product;  
         int sum = 0;
         int start = 0; // Position to start adding.
-        while (size2 != 0){
-            --size2;
+        int i1 = 0;
+        int i2 = 0;
+        while (i2 < size2){
             product = 0;
             temp_x = x + start; // Start adding here.
-            size = size1;
+            i1 = 0;
             pos = start;
             // Multiply each digit of the second number with every digit of the first.
-            while (size != 0){
-                --size;
+            while (i1 < size1){
                 // Multiply the digits the numbers.
-                product += *(b1 + size) * *(b2 + size2);
+                product += temp1[i1] * temp2[i2];
                 // If placing product into a new output slot, just place it.
                 // If placing product into pre-existing slot, add the two numbers.
                 if (pos >= size_x){
@@ -298,7 +368,7 @@ OI multiplies_digits (II1 b1, II1 e1, II2 b2, II2 e2, OI x) {
                 product /= 10;
                 ++temp_x;
                 ++pos;
-                
+                ++i1;
             }
             // If there is a product remainder place or add it to x.
             if (product != 0) {
@@ -318,6 +388,7 @@ OI multiplies_digits (II1 b1, II1 e1, II2 b2, II2 e2, OI x) {
                 ++temp_x;
                 ++pos;
             }
+            ++i2;
             ++start;
         }
         // The digits are placed into x backwards; reverse list.
@@ -349,72 +420,9 @@ OI divides_digits (II1 b1, II1 e1, II2 b2, II2 e2, OI x) {
     int size2 = e2 - b2;
     assert(size1 > 0);
     assert(size2 > 0);
-    if (size2 > size1)
-        x = divides_digits(b2, e2, b1, e1, x);
-    else {
-        int num1 = 0;
-        int num2 = 0;
-        int result = 0;
-        int size_x = 0;
-        int digit = 1; 
-        // Convert lists into ints.
-        while (size2 != 0) {
-            --e1;
-            --e2;
-            // Add digit to each num.
-            num1 += digit * *e1;
-            num2 += digit * *e2;
-            digit *= 10;
-            --size1;
-            --size2;
-        }
-        // If more digits keep converting.
-        while (size1 != 0) {
-            --e1;
-            num1 += digit * *e1;
-            digit *= 10;
-            --size1;
-        }
-        // Divide the numbers.
-        if (num1 > num2)
-            result = num1 / num2;
-        else
-            result = num2 / num1;
-        // Copy result into x.
-        while (result != 0) {
-            *x = result % 10;
-            result /= 10;
-            ++x;
-            ++size_x;
-        }
-        // The digits are placed into x backwards; reverse list.
-        reverse_num(x - size_x, x);
-    }
-    return x;}
-
-// --------------
-// mod_digits
-// --------------
-
-/**
- * @param b an iterator to the beginning of an input sequence (inclusive)
- * @param e an iterator to the end of an input sequence (exclusive)
- * @param b2 an iterator to the beginning of an input sequence (inclusive)
- * @param e2 an iterator to the end of an input sequence (exclusive)
- * @param x an iterator to the beginning of an output sequence (inclusive)
- * @return an iterator to the end of an output sequence (exclusive)
- * the sequences are of decimal digits
- * output the division of the two input sequences into the output sequence
- * ([b1, e1) / [b2, e2)) => x
- */
-template <typename II1, typename II2, typename OI>
-OI mod_digits (II1 b1, II1 e1, II2 b2, II2 e2, OI x) {
-    // <your code>
-    int size1 = e1 - b1;
-    int size2 = e2 - b2;
-    if (size2 > size1)
-        x = divides_digits(b2, e2, b1, e1, x);
-    else {
+    if (size2 <= size1) {
+        int size1 = e1 - b1;
+        int size2 = e2 - b2;
         int num1 = 0;
         int num2 = 0;
         int result = 0;
@@ -438,11 +446,8 @@ OI mod_digits (II1 b1, II1 e1, II2 b2, II2 e2, OI x) {
             digit *= 10;
             --size1;
         }
-        // Mod the two numbers
-        if (num1 > num2)
-            result = num1 % num2;
-        else
-            result = num2 % num1;
+        // Divide the two numbers
+        result = num1 / num2;
         // Copy the result into x.
         while (result != 0) {
             *x = result % 10;
@@ -450,9 +455,72 @@ OI mod_digits (II1 b1, II1 e1, II2 b2, II2 e2, OI x) {
             ++x;
             ++size_x;
         }
-         // The digits are placed into x backwards; reverse list.
+        // The digits are placed into x backwards; reverse list.
         reverse_num(x - size_x, x);
     }
+    else {
+        *x = 0;
+        ++x;
+    }
+    return x;}
+
+// --------------
+// mod_digits
+// --------------
+
+/**
+ * @param b an iterator to the beginning of an input sequence (inclusive)
+ * @param e an iterator to the end of an input sequence (exclusive)
+ * @param b2 an iterator to the beginning of an input sequence (inclusive)
+ * @param e2 an iterator to the end of an input sequence (exclusive)
+ * @param x an iterator to the beginning of an output sequence (inclusive)
+ * @return an iterator to the end of an output sequence (exclusive)
+ * the sequences are of decimal digits
+ * output the division of the two input sequences into the output sequence
+ * ([b1, e1) / [b2, e2)) => x
+ */
+template <typename II1, typename II2, typename OI>
+OI mod_digits (II1 b1, II1 e1, II2 b2, II2 e2, OI x) {
+    // <your code>
+    int size1 = e1 - b1;
+    int size2 = e2 - b2;
+    int num1 = 0;
+    int num2 = 0;
+    int result = 0;
+    int size_x = 0;
+    int digit = 1;
+    // Convert lists into ints. 
+    while (size2 != 0) {
+        --e1;
+        --e2;
+        // Add digit to each num.
+        num1 += digit * *e1;
+        num2 += digit * *e2;
+        digit *= 10;
+        --size1;
+        --size2;
+    }
+    // If more digits keep converting.
+    while (size1 != 0) {
+        --e1;
+        num1 += digit * *e1;
+        digit *= 10;
+        --size1;
+    }
+    // Mod the two numbers
+    if (num1 > num2)
+        result = num1 % num2;
+    else
+        result = num2 % num1;
+    // Copy the result into x.
+    while (result != 0) {
+        *x = result % 10;
+        result /= 10;
+        ++x;
+        ++size_x;
+    }
+    // The digits are placed into x backwards; reverse list.
+    reverse_num(x - size_x, x);
     return x;}
 
 // -------
@@ -472,6 +540,8 @@ class Integer {
      * (lhs == rhs) => true or false
      */
     friend bool operator == (const Integer& lhs, const Integer& rhs) {
+        if (lhs.size == 1 && rhs.size == 1 && lhs.digits[0] == rhs.digits[0])
+            return true;
         // Check the two Integers if the sizes and negativity are equal.
         if (lhs.size == rhs.size && lhs.is_negative == rhs.is_negative) {
             for (int i = 0; i < lhs.size; i++) {
@@ -707,7 +777,7 @@ class Integer {
     friend std::ostream& operator << (std::ostream& lhs, const Integer& rhs) {
         int i = 0;
         // If the Integer is negative, append a negative sign
-        if (rhs.is_negative)
+        if (rhs.is_negative && (rhs.digits[0] != 0 && rhs.size != 0))
             lhs << "-";
         while (i < rhs.size) {
             lhs << rhs.digits[i];
@@ -776,7 +846,7 @@ class Integer {
             is_valid = true;
             is_negative = false;
             if (value == 0) {
-                digits.push_front(value);
+                digits.push_back(value);
                 ++size;
             }
             else if (value < 0) {
@@ -891,10 +961,35 @@ class Integer {
          * (this + rhs) => this
          */
         Integer& operator += (const Integer& rhs) {
-            int size = this->digits.size();
             // The 30th Mersenne prime has 39,751 digits
             int result[40000];
-            int* end = plus_digits(this->digits.begin(), this->digits.end(), rhs.digits.begin(), rhs.digits.end(), result);
+            int* end;
+            // If this is positive and rhs is negative
+            if (!this->is_negative && rhs.is_negative) {
+                this->is_negative = true;
+                if (*this < rhs) { 
+                    this->is_negative = false;
+                    end = minus_digits(this->digits.begin(), this->digits.end(), rhs.digits.begin(), rhs.digits.end(), result);
+                }
+                else {
+                    end = minus_digits(rhs.digits.begin(), rhs.digits.end(), this->digits.begin(), this->digits.end(), result);
+                }
+            }
+            // If this is negative and rhs is positive
+            else if (this->is_negative && !rhs.is_negative) {
+                this->is_negative = false;
+                if (*this > rhs) { 
+                    this->is_negative = true;
+                    end = minus_digits(this->digits.begin(), this->digits.end(), rhs.digits.begin(), rhs.digits.end(), result);
+                }
+                else {
+                    end = minus_digits(rhs.digits.begin(), rhs.digits.end(), this->digits.begin(), this->digits.end(), result);
+                }
+            }
+            // If the negativity of both are equal
+            else {
+                end = plus_digits(this->digits.begin(), this->digits.end(), rhs.digits.begin(), rhs.digits.end(), result);
+            }
             int result_size = end - result;
             // Copy digits from result into this->digits
             for (int i = 0; i < result_size; ++i) {
@@ -916,10 +1011,36 @@ class Integer {
          * (this - rhs) => this
          */
         Integer& operator -= (const Integer& rhs) {
-            int size = this->digits.size();
             // The 30th Mersenne prime has 39,751 digits
             int result[40000];
-            int* end = minus_digits(this->digits.begin(), this->digits.end(), rhs.digits.begin(), rhs.digits.end(), result);
+            int* end;
+            // If this is positive and rhs is positive
+            
+            if (!this->is_negative && !rhs.is_negative) {
+                if (*this < rhs) { 
+                    this->is_negative = true;
+                    end = minus_digits(rhs.digits.begin(), rhs.digits.end(), this->digits.begin(), this->digits.end(), result);
+                }
+                else {
+                    end = minus_digits(this->digits.begin(), this->digits.end(), rhs.digits.begin(), rhs.digits.end(), result);   
+                }
+            }
+            // If this is negative and rhs is negative
+            else if (this->is_negative && rhs.is_negative) {
+                if (*this >= rhs) { 
+                    this->is_negative = false;
+                    end = minus_digits(rhs.digits.begin(), rhs.digits.end(), this->digits.begin(), this->digits.end(), result);
+                }
+                else {
+                    end = minus_digits(this->digits.begin(), this->digits.end(), rhs.digits.begin(), rhs.digits.end(), result);   
+                }
+            }
+            // If the negativity of both are not equal
+            else {
+                end = plus_digits(this->digits.begin(), this->digits.end(), rhs.digits.begin(), rhs.digits.end(), result);
+            }
+            
+            //end = minus_digits(this->digits.begin(), this->digits.end(), rhs.digits.begin(), rhs.digits.end(), result);
             int result_size = end - result;
             // Copy digits from result into this->digits
             for (int i = 0; i < result_size; ++i) {
@@ -941,7 +1062,6 @@ class Integer {
          * (this * rhs) => this
          */
         Integer& operator *= (const Integer& rhs) {
-            const int size = this->size;
             // The 30th Mersenne prime has 39,751 digits
             int result[40000];
             int* end = multiplies_digits(this->digits.begin(), this->digits.end(), rhs.digits.begin(), rhs.digits.end(), result);
@@ -952,8 +1072,16 @@ class Integer {
                     this->digits[i] = result[i];
                 else
                     this->digits.push_back(result[i]);
-            }    
+            }  
+            // Check negativity
+            
+            if (this->is_negative == rhs.is_negative)
+                this->is_negative = false;
+            else 
+                this->is_negative = true;
+            
             this->size = result_size;
+            
             return *this;}
 
         // -----------
@@ -967,19 +1095,30 @@ class Integer {
          * @throws invalid_argument if (rhs == 0)
          */
         Integer& operator /= (const Integer& rhs) {
-            int size = this->digits.size();
+            if ((rhs.size == 1 && rhs.digits[0] == 0))
+                throw std::invalid_argument("Invalid parameter");
             // The 30th Mersenne prime has 39,751 digits
-            int result[40000];
-            int* end = divides_digits(this->digits.begin(), this->digits.end(), rhs.digits.begin(), rhs.digits.end(), result);
-            int result_size = end - result;
-            // Copy digits from result into this->digits
-            for (int i = 0; i < result_size; ++i) {
-                if (i < size)
-                    this->digits[i] = result[i];
+            if (rhs > *this && this->is_negative == rhs.is_negative) {
+                this->digits[0] = 0;
+                this->size =  1;
+            }
+            else {
+                int result[40000];
+                int* end = divides_digits(this->digits.begin(), this->digits.end(), rhs.digits.begin(), rhs.digits.end(), result);
+                int result_size = end - result;
+                // Copy digits from result into this->digits
+                for (int i = 0; i < result_size; ++i) {
+                    if (i < size)
+                        this->digits[i] = result[i];
+                    else
+                        this->digits.push_back(result[i]);
+                }    
+                if (this->is_negative == rhs.is_negative)
+                    this->is_negative = false;
                 else
-                    this->digits.push_back(result[i]);
-            }    
-            this->size = result_size;
+                    this->is_negative = true; 
+                this->size = result_size;
+            }
             return *this;}
 
         // -----------
@@ -993,7 +1132,8 @@ class Integer {
          * @throws invalid_argument if (rhs <= 0)
          */
         Integer& operator %= (const Integer& rhs) {
-            int size = this->digits.size();
+            if ((rhs.size == 1 && rhs.digits[0] == 0) || rhs.is_negative)
+                throw std::invalid_argument("Invalid parameter");
             // The 30th Mersenne prime has 39,751 digits
             int result[40000];
             int* end = mod_digits(this->digits.begin(), this->digits.end(), rhs.digits.begin(), rhs.digits.end(), result);
@@ -1018,7 +1158,6 @@ class Integer {
          * (this << rhs) => this
          */
         Integer& operator <<= (int n) {
-            int size = this->digits.size();
             // The 30th Mersenne prime has 39,751 digits
             int result[40000];
             int* end = shift_left_digits(this->digits.begin(), this->digits.end(), n, result);
@@ -1043,7 +1182,6 @@ class Integer {
          * (this >> rhs) => this
          */
         Integer& operator >>= (int n) {
-            int size = this->digits.size();
             // The 30th Mersenne prime has 39,751 digits
             int result[40000];
             int* end = shift_right_digits(this->digits.begin(), this->digits.end(), n, result);
@@ -1081,7 +1219,7 @@ class Integer {
          * @throws invalid_argument if (e < 0)
          */
         Integer& pow (int e) {
-            if (this->digits[0] == 0 && this->size == 1 && (e == 0))
+            if ((this->digits[0] == 0 && this->size == 1) && (e == 0))
                 throw std::invalid_argument("Invalid computation");
             if (e < 0)
                 throw std::invalid_argument("Invalid power");
