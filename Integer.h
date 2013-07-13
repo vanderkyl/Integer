@@ -20,6 +20,15 @@
 
 using namespace std;
  
+// -----------
+// reverse_num
+// -----------
+
+/**
+ * @param b an iterator to the beginning of an input sequence (inclusive)
+ * @param e an iterator to the end of an input sequence (exclusive)
+ * reverse a sequence of decimal digits
+ */
 template <typename II>
 void reverse_num (II b, II e) {
     while ((b != e) && (b != --e)) {
@@ -43,17 +52,19 @@ void reverse_num (II b, II e) {
  */
 template <typename II, typename OI>
 OI shift_left_digits (II b, II e, int n, OI x) {
+    assert(n >= 0);
+    // Copy the digits into the output iterator
     while (b != e) {
         *x = *b;
         ++b;
         ++x;
     }
+    // Put n 0's into the output iterator
     while (n != 0) {
         *x = 0;
         ++x;
         --n;
     }
-    *x = 10;
     return x;}
 
 // ------------------
@@ -71,10 +82,13 @@ OI shift_left_digits (II b, II e, int n, OI x) {
  */
 template <typename II, typename OI>
 OI shift_right_digits (II b, II e, int n, OI x) {
-    // <your code>
     int size = e - b;
+    assert(size > 0);
+    assert(n >= 0);
     int num = size - n;
+    // If num is 0 or negative the result will automatically be 0;
     if (num > 0) {
+        // Copy the digits into the output till num is 0.
         while (num != 0) {
             *x = *b;
             ++b;
@@ -86,7 +100,6 @@ OI shift_right_digits (II b, II e, int n, OI x) {
         *x = 0;
         ++x;
     } 
-    *x = 10;
     return x;}
 
 // -----------
@@ -106,9 +119,10 @@ OI shift_right_digits (II b, II e, int n, OI x) {
  */
 template <typename II1, typename II2, typename OI>
 OI plus_digits (II1 b1, II1 e1, II2 b2, II2 e2, OI x) {
-    // <your code>
     int size1 = e1 - b1;
     int size2 = e2 - b2;
+    assert(size1 > 0);
+    assert(size2 > 0);
     if (size2 > size1)
         x = plus_digits(b2, e2, b1, e1, x);
     else {
@@ -117,13 +131,17 @@ OI plus_digits (II1 b1, II1 e1, II2 b2, II2 e2, OI x) {
         while (size2 != 0) {
             --size1;
             --size2;
+            // Add the least significant numbers first.
             sum += *(b1 + size1) + *(b2 + size2);
+            // Put the mod of the sum into the output.
             *x = sum % 10;
+            // Have sum contain the remainder.
             sum /= 10;
             ++x;
             ++size;
             
         }
+        // Add left over digits from the larger number.
         while (size1 != 0) {
             --size1;
             sum += *(b1 + size1);
@@ -132,14 +150,14 @@ OI plus_digits (II1 b1, II1 e1, II2 b2, II2 e2, OI x) {
             ++x;
             ++size;
         }
-        
+        // Add left over remainder.
         if (sum != 0) {
             *x = sum;
             ++x;
             ++size;
         }
+        // The digits are placed into x backwards; reverse list.
         reverse_num(x - size, x);
-        *x = 10;
     }
     return x;}
 
@@ -163,6 +181,8 @@ OI minus_digits (II1 b1, II1 e1, II2 b2, II2 e2, OI x) {
     // Assume the first number is greater than or equal to the second
     int size1 = e1 - b1;
     int size2 = e2 - b2;
+    assert(size1 > 0);
+    assert(size2 > 0);
     if (size2 > size1)
         x = minus_digits(b2, e2, b1, e1, x);
     else {
@@ -205,8 +225,8 @@ OI minus_digits (II1 b1, II1 e1, II2 b2, II2 e2, OI x) {
                 ++x;
             } 
         }
+        // The digits are placed into x backwards; reverse list.
         reverse_num(x - size, x);
-        *x = 10;
     }
     return x;}
 
@@ -229,33 +249,41 @@ template <typename II1, typename II2, typename OI>
 OI multiplies_digits (II1 b1, II1 e1, II2 b2, II2 e2, OI x) {
     int size1 = e1 - b1;
     int size2 = e2 - b2;
+    assert(size1 > 0);
+    assert(size2 > 0);
     int size_x = 0;
+    // If either number is 0 the result is 0;
     if ((*b1 == 0 && size1 == 0) || (*b2 == 0 && size2 == 1))
         *x = 0;
     else if (size2 > size1)
         x = multiplies_digits(b2, e2, b1, e1, x);
     else {
         OI temp_x;
-        int size;
-        int pos;
+        int size;      // Temp holder of first number's size.
+        int pos;       // Position that is being added on the output list.
+        int product;  
         int sum = 0;
-        int product;
-        int start = 0;
+        int start = 0; // Position to start adding.
         while (size2 != 0){
-            product = 0;
             --size2;
-            temp_x = x + start;
+            product = 0;
+            temp_x = x + start; // Start adding here.
             size = size1;
             pos = start;
+            // Multiply each digit of the second number with every digit of the first.
             while (size != 0){
                 --size;
+                // Multiply the digits the numbers.
                 product += *(b1 + size) * *(b2 + size2);
+                // If placing product into a new output slot, just place it.
+                // If placing product into pre-existing slot, add the two numbers.
                 if (pos >= size_x){
                     *temp_x = product % 10;
                     ++size_x;
                 } 
                 else {
                     sum += *temp_x + (product % 10);
+                    // If sum is greater than 9 hold remainder in sum.
                     if (sum > 9) {
                         *temp_x = sum % 10;
                         product = sum; 
@@ -266,11 +294,13 @@ OI multiplies_digits (II1 b1, II1 e1, II2 b2, II2 e2, OI x) {
                         sum = 0;
                     }
                 }
+                // Hold remainder of product.
                 product /= 10;
                 ++temp_x;
                 ++pos;
                 
             }
+            // If there is a product remainder place or add it to x.
             if (product != 0) {
                 if (pos >= size_x){
                     *temp_x = product;
@@ -290,9 +320,9 @@ OI multiplies_digits (II1 b1, II1 e1, II2 b2, II2 e2, OI x) {
             }
             ++start;
         }
+        // The digits are placed into x backwards; reverse list.
         reverse_num(x, x + size_x);
         x = x + size_x;
-        *x = 10;
     }
     return x;}
 
@@ -315,52 +345,50 @@ OI multiplies_digits (II1 b1, II1 e1, II2 b2, II2 e2, OI x) {
  */
 template <typename II1, typename II2, typename OI>
 OI divides_digits (II1 b1, II1 e1, II2 b2, II2 e2, OI x) {
-    // <your code>
     int size1 = e1 - b1;
     int size2 = e2 - b2;
+    assert(size1 > 0);
+    assert(size2 > 0);
     if (size2 > size1)
         x = divides_digits(b2, e2, b1, e1, x);
     else {
         int num1 = 0;
         int num2 = 0;
         int result = 0;
-        int size = 0;
+        int size_x = 0;
         int digit = 1; 
+        // Convert lists into ints.
         while (size2 != 0) {
             --e1;
             --e2;
+            // Add digit to each num.
             num1 += digit * *e1;
             num2 += digit * *e2;
             digit *= 10;
             --size1;
             --size2;
         }
+        // If more digits keep converting.
         while (size1 != 0) {
             --e1;
             num1 += digit * *e1;
             digit *= 10;
             --size1;
         }
+        // Divide the numbers.
         if (num1 > num2)
             result = num1 / num2;
         else
             result = num2 / num1;
+        // Copy result into x.
         while (result != 0) {
             *x = result % 10;
             result /= 10;
             ++x;
-            ++size;
+            ++size_x;
         }
-        
-        int i = 1;
-        int half_size = size / 2;
-        while (half_size != 0) {
-            std::swap(*(x - size), *(x - i));
-            --half_size;
-            --size;
-            ++i;
-        }
-        *x = 10;
+        // The digits are placed into x backwards; reverse list.
+        reverse_num(x - size_x, x);
     }
     return x;}
 
@@ -390,47 +418,43 @@ OI mod_digits (II1 b1, II1 e1, II2 b2, II2 e2, OI x) {
         int num1 = 0;
         int num2 = 0;
         int result = 0;
-        int size = 0;
-        int digit = 1; 
+        int size_x = 0;
+        int digit = 1;
+        // Convert lists into ints. 
         while (size2 != 0) {
             --e1;
             --e2;
+            // Add digit to each num.
             num1 += digit * *e1;
             num2 += digit * *e2;
             digit *= 10;
             --size1;
             --size2;
         }
+        // If more digits keep converting.
         while (size1 != 0) {
             --e1;
             num1 += digit * *e1;
             digit *= 10;
             --size1;
         }
+        // Mod the two numbers
         if (num1 > num2)
             result = num1 % num2;
         else
             result = num2 % num1;
-        
+        // Copy the result into x.
         while (result != 0) {
             *x = result % 10;
             result /= 10;
             ++x;
-            ++size;
+            ++size_x;
         }
-        
-        int i = 1;
-        int half_size = size / 2;
-        while (half_size != 0) {
-            std::swap(*(x - size), *(x - i));
-            --half_size;
-            --size;
-            ++i;
-        }
-
-        *x = 10;
+         // The digits are placed into x backwards; reverse list.
+        reverse_num(x - size_x, x);
     }
     return x;}
+
 // -------
 // Integer
 // -------
@@ -448,9 +472,10 @@ class Integer {
      * (lhs == rhs) => true or false
      */
     friend bool operator == (const Integer& lhs, const Integer& rhs) {
-        // <your code>
+        // Check the two Integers if the sizes and negativity are equal.
         if (lhs.size == rhs.size && lhs.is_negative == rhs.is_negative) {
             for (int i = 0; i < lhs.size; i++) {
+                // If the corresponding digits are not equal return false.
                 if (lhs.digits[i] != rhs.digits[i])
                     return false;
             }
@@ -482,18 +507,27 @@ class Integer {
      * (lhs < rhs) => true or false
      */
     friend bool operator < (const Integer& lhs, const Integer& rhs) {
-        // <your code>
-        if ((lhs.is_negative == true) && (rhs.is_negative == false))
+        bool lsign = lhs.is_negative;
+        bool rsign = rhs.is_negative;
+        int lsize = lhs.size;
+        int rsize = rhs.size;
+        // If lhs is negative and rhs is positive return true. 
+        if (lsign && !rsign)
             return true;
-        else if ((lhs.is_negative == false) && (rhs.is_negative == true))
+        // If lhs is positive and rhs is negative return false.
+        else if (!lsign && rsign)
             return false;
-        else if ((lhs.is_negative == false) && (rhs.is_negative == false)) {
-            if (lhs.size < rhs.size)
+        // If both are positive
+        else if (!lsign && !rsign) {
+            // If lhs is smaller return true.
+            if (lsize < rsize)
                 return true;
-            else if (lhs.size > rhs.size)
+            // If rhs is smaller return false.
+            else if (lsize > rsize)
                 return false;
+            // If equal check digits.
             else {
-                for (int i = 0; i < lhs.size(); ++i) {
+                for (int i = 0; i < lsize; ++i) {
                     int diff = lhs.digits[i] - rhs.digits[i];
                     if (diff > 0)
                         return false;
@@ -503,13 +537,17 @@ class Integer {
                 return false;
             }
         }
+        // If both are negative
         else {
-            if (lhs.size > rhs.size)
+            // If lhs is bigger return true.
+            if (lsize > rsize)
                 return true;
-            else if (lhs.size < rhs.size)
+            // If rhs is bigger return false.
+            else if (lsize < rsize)
                 return false;
+            // If equal check digits.
             else {
-                for (int i = 0; i < lhs.size(); ++i) {
+                for (int i = 0; i < lsize; ++i) {
                     int diff = lhs.digits[i] - rhs.digits[i];
                     if (diff < 0)
                         return false;
@@ -526,7 +564,10 @@ class Integer {
     // -----------
 
     /**
-     * <your documentation>
+     * @param lhs an Integer on the left hand side of operator
+     * @param rhs an Integer on the right hand side of operator
+     * @return true if less than or equal or false if greater
+     * (lhs <= rhs) => true or false
      */
     friend bool operator <= (const Integer& lhs, const Integer& rhs) {
         return !(rhs < lhs);}
@@ -536,7 +577,10 @@ class Integer {
     // ----------
 
     /**
-     * <your documentation>
+     * @param lhs an Integer on the left hand side of operator
+     * @param rhs an Integer on the right hand side of operator
+     * @return true if greater than or false if less than or equal
+     * (lhs > rhs) => true or false
      */
     friend bool operator > (const Integer& lhs, const Integer& rhs) {
         return (rhs < lhs);}
@@ -546,7 +590,10 @@ class Integer {
     // -----------
 
     /**
-     * <your documentation>
+     * @param lhs an Integer on the left hand side of operator
+     * @param rhs an Integer on the right hand side of operator
+     * @return true if greater than or equal or false if less than
+     * (lhs >= rhs) => true or false
      */
     friend bool operator >= (const Integer& lhs, const Integer& rhs) {
         return !(lhs < rhs);}
@@ -556,8 +603,11 @@ class Integer {
     // ----------
 
     /**
-     * <your documentation>
-     */
+     * @param lhs an Integer on the left hand side of operator
+     * @param rhs an Integer on the right hand side of operator
+     * @return lhs = lhs + rhs
+     * (lhs + rhs) => Integer
+     */   
     friend Integer operator + (Integer lhs, const Integer& rhs) {
         return lhs += rhs;}
 
@@ -566,8 +616,11 @@ class Integer {
     // ----------
 
     /**
-     * <your documentation>
-     */
+     * @param lhs an Integer on the left hand side of operator
+     * @param rhs an Integer on the right hand side of operator
+     * @return lhs = lhs - rhs
+     * (lhs - rhs) => Integer
+     */ 
     friend Integer operator - (Integer lhs, const Integer& rhs) {
         return lhs -= rhs;}
 
@@ -576,8 +629,11 @@ class Integer {
     // ----------
 
     /**
-     * <your documentation>
-     */
+     * @param lhs an Integer on the left hand side of operator
+     * @param rhs an Integer on the right hand side of operator
+     * @return lhs = lhs * rhs
+     * (lhs * rhs) => Integer
+     */ 
     friend Integer operator * (Integer lhs, const Integer& rhs) {
         return lhs *= rhs;}
 
@@ -586,7 +642,10 @@ class Integer {
     // ----------
 
     /**
-     * <your documentation>
+     * @param lhs an Integer on the left hand side of operator
+     * @param rhs an Integer on the right hand side of operator
+     * @return lhs = lhs / rhs
+     * (lhs / rhs) => Integer
      * @throws invalid_argument if (rhs == 0)
      */
     friend Integer operator / (Integer lhs, const Integer& rhs) {
@@ -597,7 +656,10 @@ class Integer {
     // ----------
 
     /**
-     * <your documentation>
+     * @param lhs an Integer on the left hand side of operator
+     * @param rhs an Integer on the right hand side of operator
+     * @return lhs = lhs % rhs
+     * (lhs % rhs) => Integer
      * @throws invalid_argument if (rhs <= 0)
      */
     friend Integer operator % (Integer lhs, const Integer& rhs) {
@@ -608,7 +670,10 @@ class Integer {
     // -----------
 
     /**
-     * <your documentation>
+     * @param lhs an Integer on the left hand side of operator
+     * @param rhs an int that equals the number of shifts
+     * @return lhs = lhs << rhs
+     * (lhs << rhs) => Integer
      * @throws invalid_argument if (rhs < 0)
      */
     friend Integer operator << (Integer lhs, int rhs) {
@@ -619,7 +684,10 @@ class Integer {
     // -----------
 
     /**
-     * <your documentation>
+     * @param lhs an Integer on the left hand side of operator
+     * @param rhs an int that equals the number of shifts
+     * @return lhs = lhs >> rhs
+     * (lhs >> rhs) => Integer
      * @throws invalid_argument if (rhs < 0)
      */
     friend Integer operator >> (Integer lhs, int rhs) {
@@ -630,11 +698,15 @@ class Integer {
     // -----------
 
     /**
-     * <your documentation>
+     * @param lhs an ostream on the left hand side of operator
+     * @param rhs an Integer on the right hand side of operator
+     * @return lhs
+     * (lhs << rhs) => ostream
+     * Allow printing of Integer
      */
     friend std::ostream& operator << (std::ostream& lhs, const Integer& rhs) {
-        // <your code>
         int i = 0;
+        // If the Integer is negative, append a negative sign
         if (rhs.is_negative)
             lhs << "-";
         while (i < rhs.size) {
@@ -650,7 +722,8 @@ class Integer {
     /**
      * absolute value
      * does NOT modify the argument
-     * <your documentation>
+     * @param x an Integer
+     * @return Integer by calling the method abs
      */
     friend Integer abs (Integer x) {
         return x.abs();}
@@ -662,7 +735,9 @@ class Integer {
     /**
      * power
      * does NOT modify the argument
-     * <your documentation>
+     * @param x an Integer
+     * @param e an int: x^e
+     * @return Integer by calling the method pow
      * @throws invalid_argument if (x == 0) && (e == 0)
      * @throws invalid_argument if (e < 0)
      */
@@ -674,11 +749,10 @@ class Integer {
         // data
         // ----
 
-        int size;
-        bool is_valid;
-        bool is_zero;
-        bool is_negative;
-        deque<int> digits;
+        int size;          // Number of digits in deque
+        bool is_valid;     // If the Integer is valid
+        bool is_negative;  // If the Integer is negative
+        deque<int> digits; // Container of digits.
 
     private:
         // -----
@@ -694,16 +768,14 @@ class Integer {
         // ------------
         
         /**
-         * <your documentation>
+         * @param value an int that is constructed into an Integer
+         * Mod the value for the digits and divide to get to the next digit
          */
         Integer (int value) {
-            // <your code>
             size = 0;
-            is_zero = false;
             is_valid = true;
             is_negative = false;
             if (value == 0) {
-                is_zero = true;
                 digits.push_front(value);
                 ++size;
             }
@@ -720,12 +792,14 @@ class Integer {
 
 
         /**
-         * <your documentation>
+         * @param value a string that is trying to be constructed
+         * Check ascii values for validity. Construct valid Integer if it checks out.
          * @throws invalid_argument if value is not a valid representation of an Integer
          */
         explicit Integer (const std::string& value) {
             std::string temp = value;
             is_valid = true;
+            // Check if there are any non-number characters in the string
             for (char& c : temp) {
                 int ascii = (int) c;
                 if (ascii < 48 || ascii > 57) {
@@ -734,8 +808,13 @@ class Integer {
                 }
 
             }
+            // Throw if invalid
+            // Create a valid integer if valid string.
             if (!valid())
-                throw std::invalid_argument("Integer::Integer()");}
+                throw std::invalid_argument("Integer::Integer()");
+            else 
+                *this = Integer(std::stoi(value));
+        }
 
         // Default copy, destructor, and copy assignment.
         // Integer (const Integer&);
@@ -747,21 +826,17 @@ class Integer {
         // ----------
 
         /**
-         * <your documentation>
+         * Do not modify this
+         * @return an Integer
+         * Negate the Integer given 
          */
         Integer operator - () const {
-            int size = this->size;
-            int num = 0;
-            int digit = 1;
-            while (size != 0) {
-                --size;
-                num += digits[size] * digit;
-                digit *= 10;
-            }
-            if (is_negative == true)
-                return Integer(num);
+            Integer x = *this;
+            if (x.is_negative == true)
+                x.is_negative = false;
             else
-                return Integer(-num);}
+                x.is_negative = true;
+            return x;}
             
 
         // -----------
@@ -769,14 +844,16 @@ class Integer {
         // -----------
 
         /**
-         * <your documentation>
+         * @return an Integer which is this
+         * Increment the Integer given
          */
         Integer& operator ++ () {
             *this += 1;
             return *this;}
 
         /**
-         * <your documentation>
+         * @return an Integer which is this
+         * Increment the Integer given
          */
         Integer operator ++ (int) {
             Integer x = *this;
@@ -788,14 +865,16 @@ class Integer {
         // -----------
 
         /**
-         * <your documentation>
+         * @return an copy of given Integer before calculation
+         * Decrement the Integer given
          */
         Integer& operator -- () {
             *this -= 1;
             return *this;}
 
         /**
-         * <your documentation>
+         * @return an copy of given Integer before calculation
+         * Decrement the Integer give
          */
         Integer operator -- (int) {
             Integer x = *this;
@@ -807,13 +886,17 @@ class Integer {
         // -----------
 
         /**
-         * <your documentation>
+         * @param rhs an Integer on the right hand side of operator
+         * @return this = this + rhs
+         * (this + rhs) => this
          */
         Integer& operator += (const Integer& rhs) {
             int size = this->digits.size();
+            // The 30th Mersenne prime has 39,751 digits
             int result[40000];
-            int* end = multiplies_digits(this->digits.begin(), this->digits.end(), rhs.digits.begin(), rhs.digits.end(), result);
+            int* end = plus_digits(this->digits.begin(), this->digits.end(), rhs.digits.begin(), rhs.digits.end(), result);
             int result_size = end - result;
+            // Copy digits from result into this->digits
             for (int i = 0; i < result_size; ++i) {
                 if (i < size)
                     this->digits[i] = result[i];
@@ -828,13 +911,17 @@ class Integer {
         // -----------
 
         /**
-         * <your documentation>
+         * @param rhs an Integer on the right hand side of operator
+         * @return this = this - rhs
+         * (this - rhs) => this
          */
         Integer& operator -= (const Integer& rhs) {
             int size = this->digits.size();
+            // The 30th Mersenne prime has 39,751 digits
             int result[40000];
-            int* end = multiplies_digits(this->digits.begin(), this->digits.end(), rhs.digits.begin(), rhs.digits.end(), result);
+            int* end = minus_digits(this->digits.begin(), this->digits.end(), rhs.digits.begin(), rhs.digits.end(), result);
             int result_size = end - result;
+            // Copy digits from result into this->digits
             for (int i = 0; i < result_size; ++i) {
                 if (i < size)
                     this->digits[i] = result[i];
@@ -849,13 +936,17 @@ class Integer {
         // -----------
 
         /**
-         * <your documentation>
+         * @param rhs an Integer on the right hand side of operator
+         * @return this = this * rhs
+         * (this * rhs) => this
          */
         Integer& operator *= (const Integer& rhs) {
             const int size = this->size;
+            // The 30th Mersenne prime has 39,751 digits
             int result[40000];
             int* end = multiplies_digits(this->digits.begin(), this->digits.end(), rhs.digits.begin(), rhs.digits.end(), result);
             int result_size = end - result;
+            // Copy digits from result into this->digits
             for (int i = 0; i < result_size; ++i) {
                 if (i < size)
                     this->digits[i] = result[i];
@@ -870,14 +961,18 @@ class Integer {
         // -----------
 
         /**
-         * <your documentation>
+         * @param rhs an Integer on the right hand side of operator
+         * @return this = this / rhs
+         * (this / rhs) => this
          * @throws invalid_argument if (rhs == 0)
          */
         Integer& operator /= (const Integer& rhs) {
             int size = this->digits.size();
+            // The 30th Mersenne prime has 39,751 digits
             int result[40000];
             int* end = divides_digits(this->digits.begin(), this->digits.end(), rhs.digits.begin(), rhs.digits.end(), result);
             int result_size = end - result;
+            // Copy digits from result into this->digits
             for (int i = 0; i < result_size; ++i) {
                 if (i < size)
                     this->digits[i] = result[i];
@@ -892,14 +987,18 @@ class Integer {
         // -----------
 
         /**
-         * <your documentation>
+         * @param rhs an Integer on the right hand side of operator
+         * @return this = this % rhs
+         * (this % rhs) => this
          * @throws invalid_argument if (rhs <= 0)
          */
         Integer& operator %= (const Integer& rhs) {
             int size = this->digits.size();
+            // The 30th Mersenne prime has 39,751 digits
             int result[40000];
             int* end = mod_digits(this->digits.begin(), this->digits.end(), rhs.digits.begin(), rhs.digits.end(), result);
             int result_size = end - result;
+            // Copy digits from result into this->digits
             for (int i = 0; i < result_size; ++i) {
                 if (i < size)
                     this->digits[i] = result[i];
@@ -914,13 +1013,17 @@ class Integer {
         // ------------
 
         /**
-         * <your documentation>
+         * @param n an int that is the number of left shifts
+         * @return this = this << rhs
+         * (this << rhs) => this
          */
         Integer& operator <<= (int n) {
             int size = this->digits.size();
+            // The 30th Mersenne prime has 39,751 digits
             int result[40000];
             int* end = shift_left_digits(this->digits.begin(), this->digits.end(), n, result);
             int result_size = end - result;
+            // Copy digits from result into this->digits
             for (int i = 0; i < result_size; ++i) {
                 if (i < size)
                     this->digits[i] = result[i];
@@ -935,13 +1038,17 @@ class Integer {
         // ------------
 
         /**
-         * <your documentation>
+         * @param n an int that is the number of left shifts
+         * @return this = this >> rhs
+         * (this >> rhs) => this
          */
         Integer& operator >>= (int n) {
             int size = this->digits.size();
+            // The 30th Mersenne prime has 39,751 digits
             int result[40000];
             int* end = shift_right_digits(this->digits.begin(), this->digits.end(), n, result);
             int result_size = end - result;
+            // Copy digits from result into this->digits
             for (int i = 0; i < result_size; ++i) {
                 this->digits[i] = result[i];
             }    
@@ -954,7 +1061,8 @@ class Integer {
 
         /**
          * absolute value
-         * <your documentation>
+         * @return this
+         * Change class member is_negative to false if true
          */
         Integer& abs () {
             if (this->is_negative)
@@ -967,20 +1075,23 @@ class Integer {
 
         /**
          * power
-         * <your documentation>
+         * @param e an int that is the power: this^e
+         * @return this = this^e = this.pow(e)
          * @throws invalid_argument if (this == 0) && (e == 0)
          * @throws invalid_argument if (e < 0)
          */
         Integer& pow (int e) {
-            if (this->is_zero && (e == 0))
+            if (this->digits[0] == 0 && this->size == 1 && (e == 0))
                 throw std::invalid_argument("Invalid computation");
             if (e < 0)
                 throw std::invalid_argument("Invalid power");
+            // If e = 0 the result is 1
             else if (e == 0) {
                 this->digits[0] = 1;
                 this->size = 1;
             }
             else {
+                // Keep multiplying this by a copy of its original until e = 1
                 Integer x = *this;
                 while (e != 1) {
                     *this *= x;
