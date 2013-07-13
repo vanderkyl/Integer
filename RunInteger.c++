@@ -37,22 +37,45 @@ To document the program:
 
 int main () {
     using namespace std;
+    
+    clock_t t1, t2;
     cout << "RunInteger.c++" << endl << endl;
-
+    
+    cout << "*** 1st Mersenne prime: 1 digit ***" << endl << endl;
+    {
+        const Integer<int> n = Integer<int>(2).pow(2) - 1;
+        cout << "2^2 - 1 = " << n << endl << endl;
+    }
+    
+    cout << "*** 10th Mersenne prime: 27 digits ***" << endl << endl;
+    {
+        const Integer<int> n = Integer<int>(2).pow(81) - 1;
+        cout << "2^81 - 1 = " << n << endl << endl;
+    }
+    
+    cout << "*** 14th Mersenne prime: 183 digits ***" << endl << endl;
+    {
+        const Integer<int> n = Integer<int>(2).pow(607) - 1;
+        cout << "2^607 - 1 = " << n << endl << endl;
+    }
+    
     // less than 300 ms without valgrind
     // less than 15 s with valgrind
     cout << "*** 20th Mersenne prime: 1,332 digits ***" << endl << endl;
-
+    t1 = clock();
     {
     const Integer<int> n = Integer<int>(2).pow(4423) - 1;
     cout << "2^4423 - 1 = " << n << endl << endl;
     }
-
+    t2 = clock();
+    std::cout<<"\n"<<"Time taken: "<<(static_cast<float>(t2)-static_cast<float>(t1))/static_cast<float>(CLOCKS_PER_SEC)<<" seconds\n";
+    t1 = clock();
     {
     const Integer< int, std::deque<int> > n = Integer< int, std::deque<int> >(2).pow(4423) - 1;
     cout << "2^4423 - 1 = " << n << endl << endl;
     }
-
+    t2 = clock();
+    std::cout<<"\n"<<"Time taken: "<<(static_cast<float>(t2)-static_cast<float>(t1))/static_cast<float>(CLOCKS_PER_SEC)<<" seconds\n";
     // --------------------------
     // extra credit (5 bonus pts)
     // --------------------------
@@ -60,12 +83,13 @@ int main () {
     // less than 4 min without valgrind
     // don't run with valgrind
     cout << "*** 30th Mersenne prime: 39,751 digits ***" << endl << endl;
-
+    t1 = clock();
     {
     const Integer<int> n = Integer<int>(2).pow(132049) - 1;
     cout << "2^132049 - 1 = " << n << endl << endl;
     }
-
+    t2 = clock();
+    std::cout<<"\n"<<"Time taken: "<<(static_cast<float>(t2)-static_cast<float>(t1))/static_cast<float>(CLOCKS_PER_SEC)<<" seconds\n";
     cout << "Done." << endl;
 
     return 0;}
